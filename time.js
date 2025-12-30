@@ -130,7 +130,12 @@ function checkWeeklyEvents() {
 
 // Eventos mensuales
 function checkMonthlyEvents() {
-    // Evento mensual adicional (puedes agregar más aquí)
+    // Procesar pagos de sponsors
+    if (window.reputationModule) {
+        reputationModule.processSponsorPayments();
+    }
+    
+    // Evento mensual adicional
     showNotification(`Mes ${gameTime.month} completado`, 'info');
 }
 

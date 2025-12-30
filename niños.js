@@ -329,6 +329,11 @@ function checkProfessionalGraduation() {
 
             childrenState.professionalPlayers.push(professional);
 
+            // Registrar también como adulto para torneos de adultos
+            if (window.adultsModule) {
+                adultsModule.registerGraduatedPro(professional);
+            }
+
             // Remover de la escuela
             childrenState.skillLevels = childrenState.skillLevels.filter(c => c.name !== child.name);
             childrenState.talents = childrenState.talents.filter(t => t.name !== child.name);

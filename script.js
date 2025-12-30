@@ -102,20 +102,55 @@ function updateEventPanel() {
     });
 }
 
+// Actualizar reputación basada en calidad
+function updateReputationBasedOnQuality() {
+    if (hiredTeachers.length === 0) {
+        if (window.reputationModule) {
+            reputationModule.updateReputation(-1, 'Sin profesores');
+        }
+        return;
+    }
+    
+    const avgSkill = hiredTeachers.reduce((sum, t) => sum + t.skill, 0) / hiredTeachers.length;
+    const avgPatience = hiredTeachers.reduce((sum, t) => sum + t.patience, 0) / hiredTeachers.length;
+    const avgMorale = hiredTeachers.reduce((sum, t) => sum + t.morale, 0) / hiredTeachers.length;
+    
+    const quality = (avgSkill + avgPatience + avgMorale) / 3;
+    
+    if (quality > 70) {
+        if (window.reputationModule) {
+            reputationModule.updateReputation(2, 'Alta calidad de enseñanza');
+        }
+    } else if (quality > 50) {
+        if (window.reputationModule) {
+            reputationModule.updateReputation(1, 'Calidad aceptable');
+        }
+    } else if (quality < 30) {
+        if (window.reputationModule) {
+            reputationModule.updateReputation(-2, 'Baja calidad de enseñanza');
+        }
+    }
+}
+
 // Event listeners
-document.addEventListener('DOMContentLoaded', function () {
+document.addEventListener('DOMContentLoaded', function() {
     updateStats();
     teachersModule.renderCurrentTeachers();
     teachersModule.renderAvailableTeachers();
-
+    
     // Inicializar niveles de niños
     childrenModule.initializeChildrenLevels();
-
+    
     // Inicializar niveles de adultos
     if (window.adultsModule) {
         adultsModule.initializeAdultsLevels();
     }
-
+    
+    // Inicializar reputación
+    if (window.reputationModule) {
+        reputationModule.initializeReputation();
+    }
+    
     // Inicializar tiempo del juego si está disponible
     if (window.timeModule) {
         timeModule.updateTimeDisplay();
@@ -165,8 +200,12 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 
     // Botón de Reputación
-    document.getElementById('btn-reputation').addEventListener('click', function () {
-        showNotification('Módulo de Reputación en desarrollo', 'info');
+    document.getElementById('btn-reputation').addEventListener('click', function() {
+        if (window.reputationModule) {
+            reputationModule.showReputationPanel();
+        } else {
+            showNotification('Módulo de Reputación no disponible', 'error');
+        }
     });
 
     // Botón de Competiciones
@@ -213,6 +252,7 @@ document.addEventListener('DOMContentLoaded', function () {
         if (window.adultsModule) {
             adultsModule.progressAdultsLevels();
             adultsModule.updateAdultsCount();
+            adultsModule.updateAdultsSatisfactionBasedOnTeachers(); // Nueva actualización dinámica
         }
         // Procesar competiciones activas
         if (window.competitionsModule) {
