@@ -1,10 +1,22 @@
 // Módulo de Economía
 
+// Configuración de cuotas semanales
+const weeklyFees = {
+    children: {
+        standard: 100, // Ajustado según MD
+        premium: 200   // Ajustado según MD
+    },
+    adults: {
+        standard: 150, // Ajustado según MD
+        premium: 300   // Ajustado según MD
+    }
+};
+
 // Estado de la economía
 let economyState = {
     weeklyFee: {
-        children: 100, // $100 por semana por niño
-        adults: 150    // $150 por semana por adulto
+        children: weeklyFees.children.standard, // $100 por semana por niño
+        adults: weeklyFees.adults.standard    // $150 por semana por adulto
     },
     weeklyBudget: {
         income: 0,
@@ -22,11 +34,11 @@ let economyState = {
 
 // Calcular presupuesto semanal
 function calculateWeeklyBudget() {
-    const income = (gameState.children * economyState.weeklyFee.children) + 
-                  (gameState.adults * economyState.weeklyFee.adults);
+    const income = (gameState.children * economyState.weeklyFee.children) +
+        (gameState.adults * economyState.weeklyFee.adults);
     const expenses = hiredTeachers.reduce((sum, t) => sum + (t.salary / 4), 0); // Salarios semanales
     const balance = income - expenses;
-    
+
     economyState.weeklyBudget = { income, expenses, balance };
     return economyState.weeklyBudget;
 }
@@ -37,7 +49,7 @@ function calculateCurrentBudget() {
     const income = economyState.weeklyBudget.income * weeksInMonth;
     const expenses = economyState.weeklyBudget.expenses * weeksInMonth;
     const balance = income - expenses;
-    
+
     economyState.currentBudget = { income, expenses, balance };
     return economyState.currentBudget;
 }
@@ -52,9 +64,9 @@ function addTransaction(description, amount, type) {
         type, // 'income' o 'expense'
         balance: gameState.money
     };
-    
+
     economyState.transactions.unshift(transaction);
-    
+
     // Mantener solo las últimas 50 transacciones
     if (economyState.transactions.length > 50) {
         economyState.transactions = economyState.transactions.slice(0, 50);
@@ -65,25 +77,19 @@ function addTransaction(description, amount, type) {
 function setChildrenFee(newFee) {
     const oldFee = economyState.weeklyFee.children;
     economyState.weeklyFee.children = newFee;
-    
+
     // Afectar reputación según el cambio
-    if (newFee < 50) {
-        gameState.reputation = Math.max(0, gameState.reputation - 10);
-        showNotification("Cuota muy baja. Los padres dudan de la calidad. -10% reputación", 'error');
-    } else if (newFee < 80) {
+    if (newFee < 80) {
         gameState.reputation = Math.max(0, gameState.reputation - 5);
-        showNotification("Cuota baja. Algunos padres sospechan. -5% reputación", 'warning');
+        showNotification("Cuota muy baja. Se percibe como de baja calidad. -5% reputación", 'error');
     } else if (newFee > 200) {
         gameState.reputation = Math.max(0, gameState.reputation - 8);
-        showNotification("Cuota muy alta. Los padres la consideran excesiva. -8% reputación", 'warning');
-    } else if (newFee > 150) {
-        gameState.reputation = Math.max(0, gameState.reputation - 3);
-        showNotification("Cuota alta. Algunos padres se quejan. -3% reputación", 'warning');
+        showNotification("Cuota muy alta. Los padres se quejan del precio. -8% reputación", 'warning');
     } else if (newFee >= 80 && newFee <= 150) {
         gameState.reputation = Math.min(100, gameState.reputation + 2);
-        showNotification("Cuota justa. Los padres están contentos. +2% reputación", 'success');
+        showNotification("Cuota balanceada para niños. +2% reputación", 'success');
     }
-    
+
     addTransaction(`Cambio cuota niños: $${oldFee} → $${newFee}/semana`, 0, 'info');
     updateEconomyDisplay();
     updateStats();
@@ -93,25 +99,19 @@ function setChildrenFee(newFee) {
 function setAdultsFee(newFee) {
     const oldFee = economyState.weeklyFee.adults;
     economyState.weeklyFee.adults = newFee;
-    
+
     // Afectar reputación según el cambio
-    if (newFee < 80) {
-        gameState.reputation = Math.max(0, gameState.reputation - 8);
-        showNotification("Cuota muy baja. Se percibe como de baja calidad. -8% reputación", 'error');
-    } else if (newFee < 120) {
-        gameState.reputation = Math.max(0, gameState.reputation - 4);
-        showNotification("Cuota baja. Adultos dudan de la calidad. -4% reputación", 'warning');
-    } else if (newFee > 250) {
-        gameState.reputation = Math.max(0, gameState.reputation - 10);
-        showNotification("Cuota muy alta. Los adultos la consideran abusiva. -10% reputación", 'error');
-    } else if (newFee > 200) {
+    if (newFee < 120) {
         gameState.reputation = Math.max(0, gameState.reputation - 5);
-        showNotification("Cuota alta. Algunos adultos se quejan. -5% reputación", 'warning');
-    } else if (newFee >= 120 && newFee <= 200) {
+        showNotification("Cuota baja para adultos. Se percibe como baja calidad. -5% reputación", 'warning');
+    } else if (newFee > 300) {
+        gameState.reputation = Math.max(0, gameState.reputation - 10);
+        showNotification("Cuota abusiva para adultos. -10% reputación", 'error');
+    } else if (newFee >= 120 && newFee <= 250) {
         gameState.reputation = Math.min(100, gameState.reputation + 2);
-        showNotification("Cuota justa. Los adultos están satisfechos. +2% reputación", 'success');
+        showNotification("Cuota balanceada para adultos. +2% reputación", 'success');
     }
-    
+
     addTransaction(`Cambio cuota adultos: $${oldFee} → $${newFee}/semana`, 0, 'info');
     updateEconomyDisplay();
     updateStats();
@@ -122,12 +122,12 @@ function processWeeklyPayments() {
     const childrenIncome = gameState.children * economyState.weeklyFee.children;
     const adultsIncome = gameState.adults * economyState.weeklyFee.adults;
     const totalIncome = childrenIncome + adultsIncome;
-    
+
     gameState.money += totalIncome;
-    
+
     addTransaction(`Cuotas semanales (${gameState.children} niños, ${gameState.adults} adultos)`, totalIncome, 'income');
     showNotification(`Recibido $${totalIncome} en cuotas semanales`, 'success');
-    
+
     economyState.weekNumber++;
     calculateWeeklyBudget();
     calculateCurrentBudget();
@@ -138,7 +138,7 @@ function processWeeklyPayments() {
 // Pagar salarios semanales
 function payWeeklySalaries() {
     const totalSalaries = hiredTeachers.reduce((sum, t) => sum + (t.salary / 4), 0);
-    
+
     if (gameState.money >= totalSalaries) {
         gameState.money -= totalSalaries;
         addTransaction(`Salarios semanales (${hiredTeachers.length} profesores)`, -totalSalaries, 'expense');
@@ -149,7 +149,7 @@ function payWeeklySalaries() {
         gameState.reputation = Math.max(0, gameState.reputation - 15);
         hiredTeachers.forEach(t => t.morale = Math.max(0, t.morale - 20));
     }
-    
+
     calculateWeeklyBudget();
     calculateCurrentBudget();
     updateEconomyDisplay();
@@ -206,16 +206,16 @@ function showEconomyPanel() {
                     <div class="fee-item">
                         <label>Niños:</label>
                         <div style="display: flex; align-items: center;">
-                            <input type="number" id="children-fee" value="100" min="0" max="500" step="10">
-                            <button onclick="setChildrenFee(parseInt(document.getElementById('children-fee').value))" 
+                            <input type="number" id="children-fee" value="100" min="0" max="1000" step="10">
+                            <button onclick="economyModule.setChildrenFee(parseInt(document.getElementById('children-fee').value))" 
                                     style="margin-left: 10px; padding: 5px 10px;">Cambiar</button>
                         </div>
                     </div>
                     <div class="fee-item">
                         <label>Adultos:</label>
                         <div style="display: flex; align-items: center;">
-                            <input type="number" id="adults-fee" value="150" min="0" max="500" step="10">
-                            <button onclick="setAdultsFee(parseInt(document.getElementById('adults-fee').value))" 
+                            <input type="number" id="adults-fee" value="150" min="0" max="1000" step="10">
+                            <button onclick="economyModule.setAdultsFee(parseInt(document.getElementById('adults-fee').value))" 
                                     style="margin-left: 10px; padding: 5px 10px;">Cambiar</button>
                         </div>
                     </div>
@@ -230,13 +230,13 @@ function showEconomyPanel() {
             </div>
         `;
         document.body.appendChild(panel);
-        
+
         // Event listeners
         panel.querySelector('.close-economy').addEventListener('click', () => {
             panel.classList.remove('show');
         });
     }
-    
+
     const panel = document.getElementById('economy-panel');
     panel.classList.toggle('show');
     updateEconomyDisplay();
@@ -245,27 +245,27 @@ function showEconomyPanel() {
 // Actualizar display de economía
 function updateEconomyDisplay() {
     if (!document.getElementById('economy-panel')) return;
-    
+
     calculateWeeklyBudget();
     calculateCurrentBudget();
-    
+
     // Actualizar presupuestos
     document.getElementById('weekly-income').textContent = `$${economyState.weeklyBudget.income}`;
     document.getElementById('weekly-expenses').textContent = `$${economyState.weeklyBudget.expenses}`;
     document.getElementById('weekly-balance').textContent = `$${economyState.weeklyBudget.balance}`;
-    
+
     document.getElementById('current-income').textContent = `$${economyState.currentBudget.income}`;
     document.getElementById('current-expenses').textContent = `$${economyState.currentBudget.expenses}`;
     document.getElementById('current-balance').textContent = `$${economyState.currentBudget.balance}`;
-    
+
     // Actualizar cuotas
     document.getElementById('children-fee').value = economyState.weeklyFee.children;
     document.getElementById('adults-fee').value = economyState.weeklyFee.adults;
-    
+
     // Actualizar transacciones
     const transactionsList = document.getElementById('transactions-list');
     transactionsList.innerHTML = '';
-    
+
     economyState.transactions.slice(0, 20).forEach(transaction => {
         const item = document.createElement('div');
         item.className = 'transaction-item';

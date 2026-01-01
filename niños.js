@@ -2,7 +2,7 @@
 
 // Estado de los niños
 let childrenState = {
-    count: 10, // Niños iniciales
+    count: 2, // Niños iniciales (sincronizado con gameState.children)
     satisfaction: 70, // Satisfacción general (0-100)
     complaints: 0, // Número de quejas acumuladas
     talents: [], // Niños con talento especial
@@ -17,7 +17,7 @@ function initializeChildrenLevels() {
     for (let i = 0; i < childrenState.count; i++) {
         childrenState.skillLevels.push({
             id: i,
-            name: generateChildName(),
+            name: academyUtils.generateRandomName('children'),
             level: Math.floor(Math.random() * 30) + 10, // Nivel inicial entre 10-40
             progressRate: Math.random() * 2 + 0.5, // Tasa de progreso individual
             potential: Math.floor(Math.random() * 30) + 70 // Potencial máximo 70-100
@@ -26,15 +26,7 @@ function initializeChildrenLevels() {
     updateAverageLevel();
 }
 
-// Generar nombre de niño
-const childFirstNames = ["Mateo", "Sofía", "Lucas", "Valentina", "Sebastián", "Isabella", "Matías", "Camila", "Benjamín", "Valeria", "Daniel", "Martina", "Julián", "Emma", "Thiago", "Olivia"];
-const childLastNames = ["García", "Rodríguez", "López", "Martínez", "González", "Pérez", "Sánchez", "Ramírez", "Torres", "Díaz"];
-
-function generateChildName() {
-    const firstName = childFirstNames[Math.floor(Math.random() * childFirstNames.length)];
-    const lastName = childLastNames[Math.floor(Math.random() * childLastNames.length)];
-    return `${firstName} ${lastName}`;
-}
+// La generación de nombres ahora se maneja en utils.js
 
 // Calcular calidad de clase basada en ratio profesor:alumno
 function calculateClassQuality() {
@@ -63,18 +55,7 @@ function calculateClassQuality() {
 
 // Calcular influencia de calidad de profesores
 function calculateTeacherQualityInfluence() {
-    if (hiredTeachers.length === 0) {
-        return 0;
-    }
-
-    const avgSkill = hiredTeachers.reduce((sum, t) => sum + t.skill, 0) / hiredTeachers.length;
-    const avgPatience = hiredTeachers.reduce((sum, t) => sum + t.patience, 0) / hiredTeachers.length;
-    const avgMorale = hiredTeachers.reduce((sum, t) => sum + t.morale, 0) / hiredTeachers.length;
-
-    // Combinar habilidades, paciencia y ánimo
-    const teacherQuality = (avgSkill + avgPatience + avgMorale) / 3;
-
-    return Math.floor(teacherQuality);
+    return academyUtils.calculateTeacherInfluence();
 }
 
 // Actualizar nivel promedio de los niños
@@ -116,61 +97,55 @@ function progressChildrenLevels() {
 
 // Actualizar número de niños basado en reputación
 function updateChildrenCount() {
-    const targetChildren = Math.floor(gameState.reputation / 5) + 5; // 5 niños base + 1 por cada 5% de reputación
+    const targetChildren = Math.floor(gameState.reputation / 5) + 5;
 
+    // La satisfacción afecta la retención pero menos drásticamente
+    if (childrenState.satisfaction < 25 && childrenState.count > 3) {
+        if (Math.random() < 0.15) {
+            const leavingChild = childrenState.skillLevels.pop();
+            if (leavingChild) {
+                childrenState.count--;
+                gameState.children = childrenState.count;
+                gameState.students = gameState.children + gameState.adults;
+                showNotification(`${leavingChild.name} se retiró por insatisfacción`, 'warning');
+                updateStats();
+            }
+        }
+    }
+
+    // Más fácil conseguir nuevos niños
     if (childrenState.count < targetChildren) {
-        // Nuevos niños se inscriben
-        const newChildren = Math.min(3, targetChildren - childrenState.count);
-        for (let i = 0; i < newChildren; i++) {
+        // Calcular probabilidad base más bono de atracción
+        let attractionProbability = 0.4; // 40% base
+        
+        // Agregar bono de atracción de todas las instalaciones
+        if (window.improvementsModule && window.improvementsModule.getAttractionBonus) {
+            const facilities = ['courts', 'lighting', 'equipment', 'lockerRooms', 'parking', 'bar', 'pool'];
+            facilities.forEach(facility => {
+                attractionProbability += window.improvementsModule.getAttractionBonus(facility);
+            });
+        }
+        
+        if (Math.random() < attractionProbability && childrenState.satisfaction > 25) {
             childrenState.skillLevels.push({
                 id: childrenState.skillLevels.length,
                 name: generateChildName(),
-                level: Math.floor(Math.random() * 20) + 10, // Nivel inicial 10-30
+                level: Math.floor(Math.random() * 20) + 5,
                 progressRate: Math.random() * 2 + 0.5,
-                potential: Math.floor(Math.random() * 30) + 70
+                potential: Math.floor(Math.random() * 30) + 50,
+                talent: Math.floor(Math.random() * 5) + 1,
+                isProfessional: false
             });
+            childrenState.count++;
+            gameState.children = childrenState.count;
+            gameState.students = gameState.children + gameState.adults;
+            showNotification('¡Un nuevo niño se inscribió en la escuela!', 'success');
+            updateStats();
         }
-        childrenState.count += newChildren;
-        showNotification(`${newChildren} niño(s) nuevo(s) se inscribieron en la escuela`, 'success');
-
-        // Posibilidad de que sea un niño talentoso
-        if (Math.random() < 0.1) {
-            const talentName = generateTalentName();
-            childrenState.talents.push({
-                name: talentName,
-                skill: Math.floor(Math.random() * 30) + 70,
-                age: Math.floor(Math.random() * 10) + 6
-            });
-            showNotification(`¡${talentName} es un niño con gran talento!`, 'success');
-        }
-    } else if (childrenState.count > targetChildren && childrenState.complaints > 0) {
-        // Niños se van por mal servicio
-        const leavingChildren = Math.min(2, childrenState.count - targetChildren);
-        // Remover niños aleatoriamente
-        for (let i = 0; i < leavingChildren; i++) {
-            if (childrenState.skillLevels.length > 0) {
-                const randomIndex = Math.floor(Math.random() * childrenState.skillLevels.length);
-                childrenState.skillLevels.splice(randomIndex, 1);
-            }
-        }
-        childrenState.count -= leavingChildren;
-        showNotification(`${leavingChildren} niño(s) se retiraron de la escuela`, 'warning');
     }
-
-    gameState.children = childrenState.count;
-    updateAverageLevel();
-    updateStats();
 }
 
-// Generar nombre de niño talentoso
-const firstNames = ["Mateo", "Sofía", "Lucas", "Valentina", "Sebastián", "Isabella", "Matías", "Camila", "Benjamín", "Valeria"];
-const lastNames = ["García", "Rodríguez", "López", "Martínez", "González", "Pérez", "Sánchez", "Ramírez", "Torres", "Díaz"];
-
-function generateTalentName() {
-    const firstName = firstNames[Math.floor(Math.random() * firstNames.length)];
-    const lastName = lastNames[Math.floor(Math.random() * lastNames.length)];
-    return `${firstName} ${lastName}`;
-}
+// Los nombres ahora se manejan en utils.js
 
 // Eventos específicos de niños
 function triggerChildEvent() {

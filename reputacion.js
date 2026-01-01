@@ -12,31 +12,31 @@ let reputationState = {
 
 // Sistema de Sponsors
 const sponsorTiers = {
-    bronze: { 
-        name: "Bronce", 
-        minReputation: 20, 
-        monthlyIncome: 500, 
+    bronze: {
+        name: "Bronce",
+        minReputation: 15,
+        monthlyIncome: 500,
         reputationBoost: 1,
         color: "#CD7F32"
     },
-    silver: { 
-        name: "Plata", 
-        minReputation: 40, 
-        monthlyIncome: 1200, 
+    silver: {
+        name: "Plata",
+        minReputation: 30,
+        monthlyIncome: 1200,
         reputationBoost: 2,
         color: "#C0C0C0"
     },
-    gold: { 
-        name: "Oro", 
-        minReputation: 60, 
-        monthlyIncome: 2500, 
+    gold: {
+        name: "Oro",
+        minReputation: 45,
+        monthlyIncome: 2500,
         reputationBoost: 3,
         color: "#FFD700"
     },
-    platinum: { 
-        name: "Platino", 
-        minReputation: 80, 
-        monthlyIncome: 5000, 
+    platinum: {
+        name: "Platino",
+        minReputation: 65,
+        monthlyIncome: 5000,
         reputationBoost: 5,
         color: "#E5E4E2"
     }
@@ -59,24 +59,24 @@ function initializeReputation() {
 // Actualizar sponsors basados en reputación
 function updateSponsors() {
     const currentTier = getCurrentSponsorTier();
-    
+
     // Remover sponsors que ya califican
     reputationState.sponsors = reputationState.sponsors.filter(sponsor => {
         const tier = sponsorTiers[sponsor.tier];
         return reputationState.currentReputation >= tier.minReputation;
     });
-    
+
     // Agregar nuevos sponsors posibles
     Object.entries(sponsorTiers).forEach(([tierKey, tier]) => {
         if (reputationState.currentReputation >= tier.minReputation) {
             // Verificar si ya tenemos un sponsor de este nivel
             const hasTier = reputationState.sponsors.some(s => s.tier === tierKey);
-            
-            if (!hasTier && Math.random() < 0.3) { // 30% de probabilidad
-                const availableNames = sponsorNames.filter(name => 
+
+            if (!hasTier && Math.random() < 0.5) { // Aumentado a 50%
+                const availableNames = sponsorNames.filter(name =>
                     !reputationState.sponsors.some(s => s.name === name)
                 );
-                
+
                 if (availableNames.length > 0) {
                     reputationState.sponsors.push({
                         name: availableNames[Math.floor(Math.random() * availableNames.length)],
@@ -86,7 +86,7 @@ function updateSponsors() {
                         startMonth: gameState.month,
                         startYear: gameState.year
                     });
-                    
+
                     showNotification(`🤝 Nuevo sponsor ${tier.name}: ${reputationState.sponsors[reputationState.sponsors.length - 1].name}`, 'success');
                 }
             }
@@ -107,26 +107,26 @@ function getCurrentSponsorTier() {
 // Procesar pagos de sponsors (mensual)
 function processSponsorPayments() {
     let totalIncome = 0;
-    
+
     reputationState.sponsors.forEach(sponsor => {
-        const monthsActive = (gameState.year - sponsor.startYear) * 12 + 
-                           (gameState.month - sponsor.startMonth);
-        
+        const monthsActive = (gameState.year - sponsor.startYear) * 12 +
+            (gameState.month - sponsor.startMonth);
+
         if (monthsActive < sponsor.contractMonths) {
             gameState.money += sponsor.monthlyIncome;
             totalIncome += sponsor.monthlyIncome;
         }
     });
-    
+
     if (totalIncome > 0) {
         showNotification(`💰 Recibido $${totalIncome} de sponsors`, 'success');
-        
+
         // Agregar transacción
         if (window.economyModule) {
             economyModule.addTransaction(`Pagos de sponsors (${reputationState.sponsors.length} sponsors)`, totalIncome, 'income');
         }
     }
-    
+
     // Verificar contratos expirados
     checkExpiredContracts();
 }
@@ -134,19 +134,19 @@ function processSponsorPayments() {
 // Verificar contratos expirados
 function checkExpiredContracts() {
     const expiredSponsors = reputationState.sponsors.filter(sponsor => {
-        const monthsActive = (gameState.year - sponsor.startYear) * 12 + 
-                           (gameState.month - sponsor.startMonth);
+        const monthsActive = (gameState.year - sponsor.startYear) * 12 +
+            (gameState.month - sponsor.startMonth);
         return monthsActive >= sponsor.contractMonths;
     });
-    
+
     expiredSponsors.forEach(sponsor => {
         showNotification(`⏰ Contrato con ${sponsor.name} expiró`, 'warning');
     });
-    
+
     // Remover sponsors expirados
     reputationState.sponsors = reputationState.sponsors.filter(sponsor => {
-        const monthsActive = (gameState.year - sponsor.startYear) * 12 + 
-                           (gameState.month - sponsor.startMonth);
+        const monthsActive = (gameState.year - sponsor.startYear) * 12 +
+            (gameState.month - sponsor.startMonth);
         return monthsActive < sponsor.contractMonths;
     });
 }
@@ -156,28 +156,28 @@ function calculateOverallSatisfaction() {
     let childrenSatisfaction = 0;
     let adultsSatisfaction = 0;
     let totalStudents = 0;
-    
+
     // Satisfacción de niños
     if (window.childrenModule && childrenState.count > 0) {
         childrenSatisfaction = childrenState.satisfaction * childrenState.count;
         totalStudents += childrenState.count;
     }
-    
+
     // Satisfacción de adultos (ahora dinámica)
-    if (window.adultsModule && adultsModule && adultsState.count > 0) {
-        adultsSatisfaction = adultsState.satisfaction * adultsState.count;
-        totalStudents += adultsState.count;
+    if (window.adultsModule && adultsModule.adultsState && adultsModule.adultsState.count > 0) {
+        adultsSatisfaction = adultsModule.adultsState.satisfaction * adultsModule.adultsState.count;
+        totalStudents += adultsModule.adultsState.count;
     }
-    
+
     if (totalStudents === 0) return 0;
-    
+
     return Math.floor((childrenSatisfaction + adultsSatisfaction) / totalStudents);
 }
 
 // Diagnosticar problemas de la escuela
 function diagnoseIssues() {
     reputationState.issues = [];
-    
+
     // Problemas de personal
     if (hiredTeachers.length === 0) {
         reputationState.issues.push({
@@ -191,11 +191,11 @@ function diagnoseIssues() {
         // Ratio profesor:alumno considerando horarios diferenciados
         let ratioProblem = false;
         let maxRatio = 0;
-        
+
         // Evaluar niños y adultos por separado
         if (window.childrenModule && childrenState?.count > 0) {
             const childrenRatio = childrenState.count / hiredTeachers.length;
-            if (childrenRatio > 15) { // Límite más alto por horarios diferenciados
+            if (childrenRatio > 15) { // Límite de 15 niños/profesor (mañana)
                 reputationState.issues.push({
                     type: 'warning',
                     title: 'Ratio Niños:Profesor Alto',
@@ -207,10 +207,10 @@ function diagnoseIssues() {
                 maxRatio = Math.max(maxRatio, childrenRatio);
             }
         }
-        
-        if (window.adultsModule && adultsModule.count > 0) {
-            const adultsRatio = adultsModule.count / hiredTeachers.length;
-            if (adultsRatio > 12) { // Límite un poco menor para adultos
+
+        if (window.adultsModule && adultsModule.adultsState && adultsModule.adultsState.count > 0) {
+            const adultsRatio = adultsModule.adultsState.count / hiredTeachers.length;
+            if (adultsRatio > 12) { // Límite de 12 adultos/profesor (tarde/noche)
                 reputationState.issues.push({
                     type: 'warning',
                     title: 'Ratio Adultos:Profesor Alto',
@@ -222,7 +222,7 @@ function diagnoseIssues() {
                 maxRatio = Math.max(maxRatio, adultsRatio);
             }
         }
-        
+
         // Si no hay problemas de ratio, mostrar mensaje positivo
         if (!ratioProblem && hiredTeachers.length > 0) {
             reputationState.issues.push({
@@ -233,7 +233,7 @@ function diagnoseIssues() {
                 solution: 'Mantén esta organización'
             });
         }
-        
+
         // Moral baja de profesores
         const avgMorale = hiredTeachers.reduce((sum, t) => sum + t.morale, 0) / hiredTeachers.length;
         if (avgMorale < 30) {
@@ -246,7 +246,7 @@ function diagnoseIssues() {
             });
         }
     }
-    
+
     // Problemas financieros
     if (gameState.money < 2000) {
         reputationState.issues.push({
@@ -257,7 +257,7 @@ function diagnoseIssues() {
             solution: 'Aumenta cuotas o busca sponsors'
         });
     }
-    
+
     // Problemas de satisfacción
     const satisfaction = calculateOverallSatisfaction();
     if (satisfaction < 40) {
@@ -269,24 +269,38 @@ function diagnoseIssues() {
             solution: 'Mejora calidad de enseñanza'
         });
     }
-    
-    // Problemas de infraestructura (simulados)
-    if (Math.random() < 0.1) { // 10% de probabilidad
-        const infrastructureIssues = [
-            { title: 'Canchas en mal estado', impact: -4 },
-            { title: 'Equipamiento obsoleto', impact: -3 },
-            { title: 'Falta de iluminación nocturna', impact: -5 },
-            { title: 'Vestuarios insuficientes', impact: -2 }
-        ];
-        
-        const issue = infrastructureIssues[Math.floor(Math.random() * infrastructureIssues.length)];
-        reputationState.issues.push({
-            type: 'info',
-            title: issue.title,
-            description: 'Problema de infraestructura detectado',
-            impact: issue.impact,
-            solution: 'Realiza mejoras en la escuela'
+
+    // Problemas de infraestructura (ahora del sistema de mejoras)
+    if (window.improvementsModule) {
+        const infrastructureProblems = improvementsModule.getCurrentInfrastructureProblems();
+        infrastructureProblems.forEach(problem => {
+            reputationState.issues.push({
+                type: 'warning',
+                title: problem.title,
+                description: problem.description,
+                impact: problem.impact,
+                solution: `${problem.solution} (Panel de Mejoras)`
+            });
         });
+    } else {
+        // Sistema antiguo de respaldo
+        if (Math.random() < 0.1) { // 10% de probabilidad
+            const infrastructureIssues = [
+                { title: 'Canchas en mal estado', impact: -4 },
+                { title: 'Equipamiento obsoleto', impact: -3 },
+                { title: 'Falta de iluminación nocturna', impact: -5 },
+                { title: 'Vestuarios insuficientes', impact: -2 }
+            ];
+
+            const issue = infrastructureIssues[Math.floor(Math.random() * infrastructureIssues.length)];
+            reputationState.issues.push({
+                type: 'info',
+                title: issue.title,
+                description: 'Problema de infraestructura detectado',
+                impact: issue.impact,
+                solution: 'Realiza mejoras en la escuela'
+            });
+        }
     }
 }
 
@@ -370,13 +384,13 @@ function showReputationPanel() {
             </div>
         `;
         document.body.appendChild(panel);
-        
+
         // Event listeners
         panel.querySelector('.close-reputation').addEventListener('click', () => {
             panel.classList.remove('show');
         });
     }
-    
+
     const panel = document.getElementById('reputation-panel');
     panel.classList.toggle('show');
     updateReputationDisplay();
@@ -385,28 +399,28 @@ function showReputationPanel() {
 // Actualizar display de reputación
 function updateReputationDisplay() {
     if (!document.getElementById('reputation-panel')) return;
-    
+
     // Actualizar reputación general
     const reputationFill = document.getElementById('reputation-fill');
     const reputationText = document.getElementById('reputation-text');
     const reputationLevel = document.getElementById('reputation-level');
-    
+
     reputationFill.style.width = `${reputationState.currentReputation}%`;
     reputationText.textContent = `${reputationState.currentReputation}%`;
-    
+
     // Determinar nivel
     let level = 'Muy Baja';
     if (reputationState.currentReputation >= 80) level = 'Excelente';
     else if (reputationState.currentReputation >= 60) level = 'Muy Buena';
     else if (reputationState.currentReputation >= 40) level = 'Buena';
     else if (reputationState.currentReputation >= 20) level = 'Regular';
-    
+
     reputationLevel.textContent = level;
-    
+
     // Actualizar sponsors
     const sponsorsList = document.getElementById('sponsors-list');
     sponsorsList.innerHTML = '';
-    
+
     if (reputationState.sponsors.length === 0) {
         sponsorsList.innerHTML = '<p style="color: #666; font-style: italic;">No tienes sponsors activos</p>';
     } else {
@@ -432,28 +446,28 @@ function updateReputationDisplay() {
             sponsorsList.appendChild(sponsorDiv);
         });
     }
-    
+
     // Actualizar satisfacción
     const childrenSat = childrenState?.satisfaction || 0;
     const adultsSat = adultsModule?.adultsState?.satisfaction || 60; // Ahora usa la satisfacción dinámica
     const overallSat = calculateOverallSatisfaction();
-    
+
     document.getElementById('children-satisfaction').style.width = `${childrenSat}%`;
     document.getElementById('children-satisfaction-text').textContent = `${childrenSat}%`;
-    
+
     document.getElementById('adults-satisfaction').style.width = `${adultsSat}%`;
     document.getElementById('adults-satisfaction-text').textContent = `${adultsSat}%`;
-    
+
     document.getElementById('overall-satisfaction').style.width = `${overallSat}%`;
     document.getElementById('overall-satisfaction-text').textContent = `${overallSat}%`;
-    
+
     // Actualizar información de horarios
     updateScheduleDisplay();
-    
+
     // Actualizar problemas
     const issuesList = document.getElementById('issues-list');
     issuesList.innerHTML = '';
-    
+
     if (reputationState.issues.length === 0) {
         issuesList.innerHTML = '<p style="color: #28a745; font-weight: bold;">✅ Todo está funcionando correctamente</p>';
     } else {
@@ -484,18 +498,18 @@ function updateReputationDisplay() {
 function updateScheduleDisplay() {
     const scheduleInfo = document.getElementById('schedule-info');
     if (!scheduleInfo) return;
-    
+
     scheduleInfo.innerHTML = '';
-    
+
     if (hiredTeachers.length === 0) {
         scheduleInfo.innerHTML = '<p style="color: #dc3545; font-style: italic;">Sin profesores contratados</p>';
         return;
     }
-    
+
     // Calcular ratios por horario
     const childrenRatio = childrenState?.count ? (childrenState.count / hiredTeachers.length).toFixed(1) : '0.0';
     const adultsRatio = adultsModule?.adultsState?.count ? (adultsModule.adultsState.count / hiredTeachers.length).toFixed(1) : '0.0';
-    
+
     // Crear visualización de horarios
     const scheduleDiv = document.createElement('div');
     scheduleDiv.innerHTML = `
@@ -532,7 +546,7 @@ function updateScheduleDisplay() {
             </div>
         </div>
     `;
-    
+
     scheduleInfo.appendChild(scheduleDiv);
 }
 
@@ -541,7 +555,7 @@ function updateReputation(change, reason) {
     const oldReputation = reputationState.currentReputation;
     reputationState.currentReputation = Math.max(0, Math.min(100, reputationState.currentReputation + change));
     gameState.reputation = reputationState.currentReputation;
-    
+
     // Agregar al historial de tendencias
     reputationState.trends.unshift({
         date: new Date().toISOString(),
@@ -550,20 +564,20 @@ function updateReputation(change, reason) {
         change: change,
         reason: reason
     });
-    
+
     // Mantener solo últimas 50 tendencias
     if (reputationState.trends.length > 50) {
         reputationState.trends = reputationState.trends.slice(0, 50);
     }
-    
+
     // Actualizar sponsors si hubo cambio significativo
     if (Math.abs(change) >= 5) {
         updateSponsors();
     }
-    
+
     // Diagnosticar problemas
     diagnoseIssues();
-    
+
     updateStats();
 }
 

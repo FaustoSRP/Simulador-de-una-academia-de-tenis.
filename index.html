@@ -1,11 +1,13 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Simulador de Escuela de Tenis</title>
     <link rel="stylesheet" href="styles.css">
 </head>
+
 <body>
     <div class="game-container">
         <!-- Panel Superior con Estadísticas -->
@@ -67,74 +69,96 @@
                     <div class="trophy">🥈</div>
                 </div>
 
+                <!-- Cuadro en la pared -->
+                <div class="picture-frame">
+                    <div class="picture-content">🎾</div>
+                </div>
+
+                <!-- Planta -->
+                <div class="plant">
+                    <div class="plant-pot"></div>
+                    <div class="plant-leaves"></div>
+                </div>
+
                 <!-- Botones de Acción -->
-                <div class="action-buttons">
-                    <button class="btn btn-economy" id="btn-economy">
-                        <span class="btn-icon">💰</span>
-                        <span class="btn-text">Economía</span>
-                    </button>
-                    <button class="btn btn-reputation" id="btn-reputation">
-                        <span class="btn-icon">⭐</span>
-                        <span class="btn-text">Reputación</span>
-                    </button>
-                    <button class="btn btn-teachers" id="btn-teachers">
+                <div class="game-controls">
+                    <button id="btn-teachers" class="btn btn-primary">
                         <span class="btn-icon">👨‍🏫</span>
                         <span class="btn-text">Profesores</span>
                     </button>
-                    <button class="btn btn-competitions" id="btn-competitions">
-                        <span class="btn-icon">🏆</span>
-                        <span class="btn-text">Competiciones</span>
-                    </button>
-                    <button class="btn btn-events" id="btn-events">
+                    <button id="btn-events" class="btn btn-primary">
                         <span class="btn-icon">📅</span>
                         <span class="btn-text">Eventos</span>
                     </button>
+                    <button id="btn-economy" class="btn btn-economy">
+                        <span class="btn-icon">💰</span>
+                        <span class="btn-text">Economía</span>
+                    </button>
+                    <button id="btn-reputation" class="btn btn-reputation">
+                        <span class="btn-icon">⭐</span>
+                        <span class="btn-text">Reputación</span>
+                    </button>
+                    <button id="btn-improvements" class="btn btn-improvements">
+                        <span class="btn-icon">🔨</span>
+                        <span class="btn-text">Mejoras</span>
+                    </button>
+                    <button id="btn-competitions" class="btn btn-competitions">
+                        <span class="btn-icon">🏆</span>
+                        <span class="btn-text">Competiciones</span>
+                    </button>
+                    <button id="btn-pause" class="btn btn-warning">
+                        <span class="btn-icon">⏸️</span>
+                        <span class="btn-text">Pausar</span>
+                    </button>
+                </div>
+
+                <!-- Panel de Profesores (Oculto por ahora) -->
+                <aside class="teachers-panel" id="teachers-panel">
+                    <h3>Gestión de Profesores</h3>
+                    <div class="teachers-tabs">
+                        <button class="tab-btn active" data-tab="current">Profesores Actuales</button>
+                        <button class="tab-btn" data-tab="available">Profesores Disponibles</button>
+                    </div>
+                    <div class="teachers-content">
+                        <div class="tab-content active" id="current-teachers">
+                            <!-- Lista de profesores actuales -->
+                        </div>
+                        <div class="tab-content" id="available-teachers">
+                            <!-- Lista de profesores disponibles -->
+                        </div>
+                    </div>
+                </aside>
+
+                <!-- Panel de Eventos -->
+                <aside class="events-panel" id="events-panel">
+                    <h3
+                        style="padding: 20px; margin: 0; color: #333; background: #f8f9fa; border-bottom: 1px solid #dee2e6;">
+                        Historial de Eventos</h3>
+                    <div class="event-list" style="padding: 20px; max-height: calc(100vh - 80px); overflow-y: auto;">
+                        <!-- Los eventos aparecerán aquí -->
+                    </div>
+                </aside>
+                <div class="modal" id="teacher-modal">
+                    <div class="modal-content">
+                        <span class="close-modal">&times;</span>
+                        <h2 id="modal-teacher-name"></h2>
+                        <div class="teacher-details"></div>
+                        <div class="modal-actions"></div>
+                    </div>
                 </div>
             </div>
-        </main>
 
-        <!-- Panel de Profesores (Oculto por ahora) -->
-        <aside class="teachers-panel" id="teachers-panel">
-            <h3>Gestión de Profesores</h3>
-            <div class="teachers-tabs">
-                <button class="tab-btn active" data-tab="current">Profesores Actuales</button>
-                <button class="tab-btn" data-tab="available">Profesores Disponibles</button>
-            </div>
-            <div class="teachers-content">
-                <div class="tab-content active" id="current-teachers">
-                    <!-- Lista de profesores actuales -->
-                </div>
-                <div class="tab-content" id="available-teachers">
-                    <!-- Lista de profesores disponibles -->
-                </div>
-            </div>
-        </aside>
-
-        <!-- Panel de Eventos -->
-        <aside class="events-panel" id="events-panel">
-            <h3 style="padding: 20px; margin: 0; color: #333; background: #f8f9fa; border-bottom: 1px solid #dee2e6;">Historial de Eventos</h3>
-            <div class="event-list" style="padding: 20px; max-height: calc(100vh - 80px); overflow-y: auto;">
-                <!-- Los eventos aparecerán aquí -->
-            </div>
-        </aside>
-        <div class="modal" id="teacher-modal">
-            <div class="modal-content">
-                <span class="close-modal">&times;</span>
-                <h2 id="modal-teacher-name"></h2>
-                <div class="teacher-details"></div>
-                <div class="modal-actions"></div>
-            </div>
-        </div>
-    </div>
-
-    <script src="economia.js"></script>
-    <script src="niños.js"></script>
-    <script src="adultos.js"></script>
-    <script src="reputacion.js"></script>
-    <script src="profesores.js"></script>
-    <script src="eventos.js"></script>
-    <script src="time.js"></script>
-    <script src="competiciones.js"></script>
-    <script src="script.js"></script>
+            <script src="utils.js"></script>
+            <script src="profesores.js"></script>
+            <script src="niños.js"></script>
+            <script src="adultos.js"></script>
+            <script src="time.js"></script>
+            <script src="eventos.js"></script>
+            <script src="economia.js"></script>
+            <script src="reputacion.js"></script>
+            <script src="mejoras.js"></script>
+            <script src="competiciones.js"></script>
+            <script src="script.js"></script>
 </body>
+
 </html>

@@ -47,8 +47,6 @@ function nextMonth() {
     gameTime.month++;
 
     if (gameTime.month > 12) {
-        gameState.month = 1;
-        gameState.year++;
         gameTime.month = 1;
         gameTime.year++;
     }
@@ -134,7 +132,12 @@ function checkMonthlyEvents() {
     if (window.reputationModule) {
         reputationModule.processSponsorPayments();
     }
-    
+
+    // Procesar mantenimiento automático de infraestructura
+    if (window.improvementsModule) {
+        improvementsModule.performMaintenance();
+    }
+
     // Evento mensual adicional
     showNotification(`Mes ${gameTime.month} completado`, 'info');
 }

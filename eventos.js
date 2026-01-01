@@ -1,11 +1,90 @@
 // Módulo de Eventos
 
 // Sistema de eventos aleatorios
+// Sistema de eventos aleatorios con pesos
 function triggerRandomEvent() {
     const events = [
         {
+            title: "Padre satisfecho recomienda la escuela",
+            description: "Un padre está muy contento y trae a sus amigos",
+            weight: 15,
+            effect: () => {
+                gameState.reputation = Math.min(100, gameState.reputation + 3);
+                // Asegurar consistencia en el conteo de alumnos
+                gameState.children += 2;
+                if (window.childrenModule) {
+                    for(let i=0; i<2; i++) {
+                        childrenModule.childrenState.skillLevels.push({
+                            id: childrenModule.childrenState.skillLevels.length,
+                            name: academyUtils.generateRandomName('children'),
+                            level: Math.floor(Math.random() * 20) + 10,
+                            progressRate: Math.random() * 2 + 0.5,
+                            potential: Math.floor(Math.random() * 30) + 70
+                        });
+                    }
+                    childrenModule.childrenState.count = gameState.children;
+                }
+                gameState.students = gameState.children + gameState.adults;
+                showNotification("¡+2 nuevos alumnos por recomendación! +3% reputación", 'success');
+            }
+        },
+        {
+            title: "Torneo local exitoso",
+            description: "Tu escuela organiza un torneo comunitario",
+            weight: 12,
+            effect: () => {
+                gameState.reputation = Math.min(100, gameState.reputation + 5);
+                gameState.money += 1000;
+                showNotification("¡Torneo exitoso! +5% reputación, +$1000", 'success');
+            }
+        },
+        {
+            title: "Festival deportivo escolar",
+            description: "Tu escuela participa en el festival deportivo local",
+            weight: 12,
+            effect: () => {
+                gameState.reputation = Math.min(100, gameState.reputation + 2);
+                gameState.children += 1;
+                if (window.childrenModule) {
+                    childrenModule.childrenState.skillLevels.push({
+                        id: childrenModule.childrenState.skillLevels.length,
+                        name: academyUtils.generateRandomName('children'),
+                        level: Math.floor(Math.random() * 20) + 10,
+                        progressRate: Math.random() * 2 + 0.5,
+                        potential: Math.floor(Math.random() * 30) + 70
+                    });
+                    childrenModule.childrenState.count = gameState.children;
+                }
+                gameState.students = gameState.children + gameState.adults;
+                showNotification("¡Festival deportivo exitoso! +2% reputación, +1 alumno", 'success');
+            }
+        },
+        {
+            title: "Donación de equipamiento",
+            description: "Una empresa dona material deportivo",
+            weight: 8,
+            effect: () => {
+                gameState.money += 500;
+                if (window.childrenModule) {
+                    childrenState.satisfaction = Math.min(100, childrenState.satisfaction + 5);
+                }
+                showNotification("¡Donación recibida! +$500, +5% satisfacción niños", 'success');
+            }
+        },
+        {
+            title: "Exalumno campeón",
+            description: "Un exalumno de tu escuela ganó un torneo importante",
+            weight: 5,
+            effect: () => {
+                gameState.reputation = Math.min(100, gameState.reputation + 6);
+                gameState.money += 2000;
+                showNotification("¡Exalumno campeón! +6% reputación, +$2000 adicionales", 'success');
+            }
+        },
+        {
             title: "¡Profesor destacado!",
             description: "Uno de tus profesores dio una clase excepcional",
+            weight: 10,
             effect: () => {
                 const gain = Math.floor(Math.random() * 5) + 3;
                 gameState.reputation = Math.min(100, gameState.reputation + gain);
@@ -13,83 +92,75 @@ function triggerRandomEvent() {
             }
         },
         {
+            title: "Artículo en periódico",
+            description: "Tu escuela fue mencionada positivamente en un artículo",
+            weight: 8,
+            effect: () => {
+                const gain = Math.floor(Math.random() * 8) + 4;
+                gameState.reputation = Math.min(100, gameState.reputation + gain);
+                showNotification(`¡Publicidad positiva! +${gain}% reputación`, 'success');
+            }
+        },
+        // Eventos negativos (reducidos según MD)
+        {
             title: "Error del profesor",
-            description: "Un profesor cometió un error grave en una clase",
+            description: "Un profesor cometió un error en una clase",
+            weight: 10,
             effect: () => {
                 if (hiredTeachers.length > 0) {
                     const randomTeacher = hiredTeachers[Math.floor(Math.random() * hiredTeachers.length)];
-                    teachersModule.teacherMakesMistake(randomTeacher);
+                    randomTeacher.morale = Math.max(0, randomTeacher.morale - 10);
+                    gameState.reputation = Math.max(0, gameState.reputation - 2);
+                    showNotification(`${randomTeacher.name} cometió un error leve. -2% reputación`, 'warning');
                 }
             }
         },
         {
             title: "Quejas de padres",
             description: "Algunos padres se quejaron del método de enseñanza",
+            weight: 10,
             effect: () => {
-                const loss = Math.floor(Math.random() * 5) + 3;
+                const loss = Math.floor(Math.random() * 3) + 1; // -1% a -3% según MD
                 gameState.reputation = Math.max(0, gameState.reputation - loss);
                 showNotification(`Quejas de padres. -${loss}% reputación`, 'warning');
             }
         },
         {
-            title: "Artículo en periódico",
-            description: "Tu escuela fue mencionada positivamente en un artículo",
+            title: "Problema en las canchas",
+            description: "Problema menor en las canchas",
+            weight: 5,
             effect: () => {
-                const gain = Math.floor(Math.random() * 10) + 5;
-                gameState.reputation = Math.min(100, gameState.reputation + gain);
-                gameState.children = Math.min(30, gameState.children + Math.floor(Math.random() * 2) + 1);
-                showNotification(`¡Publicidad positiva! +${gain}% reputación`, 'success');
+                gameState.money = Math.max(0, gameState.money - 300);
+                gameState.reputation = Math.max(0, gameState.reputation - 2);
+                showNotification("Problema en canchas: -$300, -2% reputación", 'warning');
             }
         },
         {
-            title: "Lesión de alumno",
-            description: "Un alumno se lesionó durante una clase",
+            title: "Profesor ausente",
+            description: "Un profesor no pudo asistir hoy",
+            weight: 5,
             effect: () => {
-                const loss = Math.floor(Math.random() * 10) + 5;
-                gameState.reputation = Math.max(0, gameState.reputation - loss);
-                if (gameState.children > 0) {
-                    gameState.children--;
+                if (window.childrenModule) {
+                    childrenState.satisfaction = Math.max(0, childrenState.satisfaction - 3);
                 }
-                showNotification(`Lesión en clase. -${loss}% reputación, -1 niño`, 'error');
-            }
-        },
-        {
-            title: "Patrocinio nuevo",
-            description: "Una empresa local quiere patrocinar tu escuela",
-            effect: () => {
-                const money = Math.floor(Math.random() * 3000) + 2000;
-                gameState.money += money;
-                gameState.reputation = Math.min(100, gameState.reputation + 3);
-                showNotification(`¡Nuevo patrocinio! +$${money}, +3% reputación`, 'success');
+                showNotification("Profesor ausente. -3% satisfacción niños", 'info');
             }
         }
     ];
-    
-    // Probabilidad de evento (30% cada 10 segundos para pruebas)
-    if (Math.random() < 0.3) {
-        const event = events[Math.floor(Math.random() * events.length)];
-        event.effect();
-        updateStats();
-    }
-}
 
-// Sistema de reputación basado en calidad
-function updateReputationBasedOnQuality() {
-    if (hiredTeachers.length === 0) {
-        gameState.reputation = Math.max(0, gameState.reputation - 1);
-        return;
-    }
-    
-    const avgSkill = hiredTeachers.reduce((sum, t) => sum + t.skill, 0) / hiredTeachers.length;
-    const avgPatience = hiredTeachers.reduce((sum, t) => sum + t.patience, 0) / hiredTeachers.length;
-    
-    // La reputación tiende hacia el promedio de calidad
-    const targetReputation = Math.floor((avgSkill + avgPatience) / 2);
-    
-    if (gameState.reputation < targetReputation) {
-        gameState.reputation = Math.min(targetReputation, gameState.reputation + 1);
-    } else if (gameState.reputation > targetReputation) {
-        gameState.reputation = Math.max(targetReputation, gameState.reputation - 0.5);
+    // Probabilidad de que ocurra algún evento (40% cada ciclo de tiempo)
+    if (Math.random() < 0.4) {
+        const totalWeight = events.reduce((sum, e) => sum + e.weight, 0);
+        let random = Math.random() * totalWeight;
+        
+        for (const event of events) {
+            if (random < event.weight) {
+                event.effect();
+                break;
+            }
+            random -= event.weight;
+        }
+        updateStats();
     }
 }
 

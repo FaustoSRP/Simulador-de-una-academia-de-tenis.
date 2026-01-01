@@ -1,13 +1,13 @@
 // Estado del juego
 let gameState = {
-    money: 10000,
+    money: 5000, // Reducido de 10000 a 5000 para balancear con nuevos salarios
     reputation: 50,
-    students: 15,
+    students: 3,
     teachers: 2,
-    children: 10, // Agregar niños al estado
-    adults: 5, // Agregar adultos
-    month: 1,
-    year: 1
+    adults: 1,
+    week: 1,
+    children: 2,
+    events: []
 };
 
 // Historial de eventos
@@ -106,51 +106,51 @@ function updateEventPanel() {
 function updateReputationBasedOnQuality() {
     if (hiredTeachers.length === 0) {
         if (window.reputationModule) {
-            reputationModule.updateReputation(-1, 'Sin profesores');
+            reputationModule.updateReputation(-0.5, 'Sin profesores');
         }
         return;
     }
-    
+
     const avgSkill = hiredTeachers.reduce((sum, t) => sum + t.skill, 0) / hiredTeachers.length;
     const avgPatience = hiredTeachers.reduce((sum, t) => sum + t.patience, 0) / hiredTeachers.length;
     const avgMorale = hiredTeachers.reduce((sum, t) => sum + t.morale, 0) / hiredTeachers.length;
-    
+
     const quality = (avgSkill + avgPatience + avgMorale) / 3;
-    
+
     if (quality > 70) {
         if (window.reputationModule) {
-            reputationModule.updateReputation(2, 'Alta calidad de enseñanza');
+            reputationModule.updateReputation(3, 'Alta calidad de enseñanza');
         }
     } else if (quality > 50) {
         if (window.reputationModule) {
-            reputationModule.updateReputation(1, 'Calidad aceptable');
+            reputationModule.updateReputation(1.5, 'Calidad aceptable');
         }
     } else if (quality < 30) {
         if (window.reputationModule) {
-            reputationModule.updateReputation(-2, 'Baja calidad de enseñanza');
+            reputationModule.updateReputation(-1, 'Baja calidad de enseñanza');
         }
     }
 }
 
 // Event listeners
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', function () {
     updateStats();
     teachersModule.renderCurrentTeachers();
     teachersModule.renderAvailableTeachers();
-    
+
     // Inicializar niveles de niños
     childrenModule.initializeChildrenLevels();
-    
+
     // Inicializar niveles de adultos
     if (window.adultsModule) {
         adultsModule.initializeAdultsLevels();
     }
-    
+
     // Inicializar reputación
     if (window.reputationModule) {
         reputationModule.initializeReputation();
     }
-    
+
     // Inicializar tiempo del juego si está disponible
     if (window.timeModule) {
         timeModule.updateTimeDisplay();
@@ -200,11 +200,20 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     // Botón de Reputación
-    document.getElementById('btn-reputation').addEventListener('click', function() {
+    document.getElementById('btn-reputation').addEventListener('click', function () {
         if (window.reputationModule) {
             reputationModule.showReputationPanel();
         } else {
             showNotification('Módulo de Reputación no disponible', 'error');
+        }
+    });
+
+    // Botón de Mejoras
+    document.getElementById('btn-improvements').addEventListener('click', function () {
+        if (window.improvementsModule) {
+            improvementsModule.showImprovementsPanel();
+        } else {
+            showNotification('Módulo de Mejoras no disponible', 'error');
         }
     });
 
@@ -214,6 +223,17 @@ document.addEventListener('DOMContentLoaded', function() {
             competitionsModule.showCompetitionsPanel();
         } else {
             showNotification('Módulo de Competiciones no disponible', 'error');
+        }
+    });
+
+    // Botón de Pausa
+    document.getElementById('btn-pause').addEventListener('click', function () {
+        if (window.timeModule) {
+            timeModule.togglePause();
+            // Actualizar texto del botón
+            this.innerHTML = timeModule.gameTime.isPaused ? 
+                '<span class="btn-icon">▶️</span><span class="btn-text">Reanudar</span>' : 
+                '<span class="btn-icon">⏸️</span><span class="btn-text">Pausar</span>';
         }
     });
 

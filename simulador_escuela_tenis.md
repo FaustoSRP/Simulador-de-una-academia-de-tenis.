@@ -39,7 +39,7 @@ Juego de simulación donde eres el director de una escuela de tenis, gestionando
 ### 3. Gestión de Profesores 👥
 - **Contratación:**
   - Niveles de habilidad
-  - Salarios según experiencia
+  - Salarios según experiencia, dedicación y capacidad de explicar.
   - Especialidades
 
 - **Mantenimiento:**
@@ -50,7 +50,7 @@ Juego de simulación donde eres el director de una escuela de tenis, gestionando
 - **Eventos de profesores:**
   - Errores que afectan reputación
   - Éxitos que mejoran imagen
-  - Renuncias
+  - Renuncias por descontento
 
 ### 4. Competencias y Éxitos 🏆
 - **Niveles:**
