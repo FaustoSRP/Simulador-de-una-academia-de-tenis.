@@ -145,20 +145,95 @@ function triggerRandomEvent() {
                 }
                 showNotification("Profesor ausente. -3% satisfacción niños", 'info');
             }
+        },
+        // Nuevos eventos especiales
+        {
+            title: "Fiesta en el bar",
+            description: "Los socios organizan una fiesta exitosa",
+            weight: 8,
+            condition: () => window.improvementsModule && window.improvementsModule.improvementsState.facilities.bar.level > 0,
+            effect: () => {
+                gameState.money += 800;
+                gameState.reputation = Math.min(100, gameState.reputation + 5);
+                if (window.sociosModule) {
+                    sociosModule.sociosState.satisfaction = Math.min(100, sociosModule.sociosState.satisfaction + 10);
+                }
+                showNotification("¡Fiesta en el bar! +$800, +5% reputación, +10% satisfacción socios", 'success');
+            }
+        },
+        {
+            title: "Torneo de verano en piscina",
+            description: "Evento acuático atrae a muchas familias",
+            weight: 6,
+            condition: () => window.improvementsModule && window.improvementsModule.improvementsState.facilities.pool.level > 0,
+            effect: () => {
+                gameState.children += 3;
+                gameState.adults += 2;
+                gameState.students = gameState.children + gameState.adults;
+                gameState.reputation = Math.min(100, gameState.reputation + 4);
+                showNotification("¡Torneo de verano! +3 niños, +2 adultos, +4% reputación", 'success');
+            }
+        },
+        {
+            title: "Socio VIP recomienda el club",
+            description: "Un socio influyente trae a sus amigos",
+            weight: 5,
+            condition: () => window.sociosModule && window.sociosModule.sociosState.count > 0,
+            effect: () => {
+                if (window.sociosModule) {
+                    for(let i=0; i<3; i++) {
+                        const newSocio = {
+                            id: sociosModule.sociosState.members.length,
+                            name: (() => {
+                                const names = ['Carlos', 'María', 'Luis', 'Ana', 'Roberto', 'Laura', 'Diego', 'Sofía', 'Javier', 'Valeria'];
+                                const surnames = ['García', 'Rodríguez', 'López', 'Martínez', 'González', 'Pérez', 'Sánchez', 'Ramírez', 'Torres', 'Flores'];
+                                return `${names[Math.floor(Math.random() * names.length)]} ${surnames[Math.floor(Math.random() * surnames.length)]}`;
+                            })(),
+                            joinDate: Date.now(),
+                            satisfaction: 80,
+                            membershipType: 'premium'
+                        };
+                        sociosModule.sociosState.members.push(newSocio);
+                    }
+                    sociosModule.sociosState.count += 3;
+                    gameState.money += 1000;
+                }
+                showNotification("¡Socio VIP trae 3 nuevos socios premium! +$1000", 'success');
+            }
+        },
+        {
+            title: "Clase especial en canchas nuevas",
+            description: "Las múltiples canchas permiten un evento grande",
+            weight: 7,
+            condition: () => window.improvementsModule && window.improvementsModule.improvementsState.facilities.courts.courtsCount >= 3,
+            effect: () => {
+                gameState.children += 5;
+                gameState.students = gameState.children + gameState.adults;
+                gameState.money += 1500;
+                gameState.reputation = Math.min(100, gameState.reputation + 6);
+                showNotification("¡Clase especial! +5 niños, +$1500, +6% reputación", 'success');
+            }
         }
     ];
 
     // Probabilidad de que ocurra algún evento (40% cada ciclo de tiempo)
     if (Math.random() < 0.4) {
-        const totalWeight = events.reduce((sum, e) => sum + e.weight, 0);
-        let random = Math.random() * totalWeight;
+        // Filtrar eventos que cumplen las condiciones
+        const availableEvents = events.filter(event => 
+            !event.condition || event.condition()
+        );
         
-        for (const event of events) {
-            if (random < event.weight) {
-                event.effect();
-                break;
+        if (availableEvents.length > 0) {
+            const totalWeight = availableEvents.reduce((sum, e) => sum + e.weight, 0);
+            let random = Math.random() * totalWeight;
+            
+            for (const event of availableEvents) {
+                if (random < event.weight) {
+                    event.effect();
+                    break;
+                }
+                random -= event.weight;
             }
-            random -= event.weight;
         }
         updateStats();
     }

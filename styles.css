@@ -617,6 +617,17 @@ body {
     text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
 }
 
+.btn-socios:hover {
+    background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
+    color: #333;
+    border-color: rgba(168, 237, 234, 0.5);
+}
+
+.btn-socios:hover .btn-text {
+    color: #333;
+    text-shadow: 0 2px 4px rgba(255, 255, 255, 0.8);
+}
+
 .btn-events:hover {
     background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
     color: white;
@@ -1402,4 +1413,92 @@ body {
 
 .office-scene {
     animation: fadeIn 0.5s ease;
+}
+
+/* Panel de Socios */
+.panel {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 400px;
+    max-height: 80vh;
+    background: white;
+    border-radius: 15px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+    z-index: 2000;
+    overflow: hidden;
+}
+
+.panel-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.panel-header h2 {
+    margin: 0;
+    font-size: 24px;
+}
+
+.close-btn {
+    background: rgba(255, 255, 255, 0.2);
+    border: none;
+    color: white;
+    font-size: 24px;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.3s;
+}
+
+.close-btn:hover {
+    background: rgba(255, 255, 255, 0.3);
+}
+
+.panel-content {
+    padding: 20px;
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+.socios-stats .stat-item {
+    display: flex;
+    justify-content: space-between;
+    padding: 10px 0;
+    border-bottom: 1px solid #eee;
+}
+
+.socios-stats .stat-item span:first-child {
+    font-weight: 500;
+    color: #666;
+}
+
+.socios-stats .stat-item span:last-child {
+    font-weight: bold;
+    color: #333;
+}
+
+.socios-info {
+    margin-top: 20px;
+    padding-top: 20px;
+    border-top: 2px solid #f0f0f0;
+}
+
+.socios-info h3 {
+    margin: 0 0 10px 0;
+    color: #333;
+}
+
+.socios-info p {
+    margin: 5px 0;
+    color: #666;
+    line-height: 1.5;
 }

@@ -124,6 +124,13 @@ function checkWeeklyEvents() {
         economyModule.processWeeklyPayments();
         economyModule.payWeeklySalaries();
     }
+    
+    // Procesar ingresos de socios
+    if (window.sociosModule) {
+        sociosModule.processSociosIncome();
+        sociosModule.updateSociosCount();
+        sociosModule.updateSociosSatisfaction();
+    }
 }
 
 // Eventos mensuales

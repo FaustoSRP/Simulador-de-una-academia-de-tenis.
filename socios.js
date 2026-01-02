@@ -203,17 +203,30 @@ function showSociosPanel() {
                         <span>Ingreso Semanal:</span>
                         <span id="socios-income">$${sociosState.count * sociosState.weeklyFee}</span>
                     </div>
+                    <div class="stat-item" style="margin-top: 10px; padding-top: 10px; border-top: 2px solid #eee;">
+                        <span>Premium:</span>
+                        <span id="socios-premium">0</span>
+                    </div>
+                    <div class="stat-item">
+                        <span>Standard:</span>
+                        <span id="socios-standard">0</span>
+                    </div>
                 </div>
                 <div class="socios-info">
                     <h3>Información</h3>
                     <p>Los socios pagan cuotas semanales por usar las instalaciones sociales del club.</p>
                     <p>Construye un bar y piscina para atraer más socios.</p>
+                    <p style="margin-top: 10px; font-size: 14px; color: #888;">
+                        💡 Tip: Los socios premium pagan el doble de cuota.
+                    </p>
                 </div>
             </div>
         `;
         document.body.appendChild(panel);
     }
     
+    // Actualizar datos cada vez que se abre
+    updateMaxCapacity();
     updateSociosDisplay();
 }
 
@@ -226,16 +239,26 @@ function updateSociosDisplay() {
     document.getElementById('socios-capacity').textContent = sociosState.maxCapacity;
     document.getElementById('socios-satisfaction').textContent = sociosState.satisfaction + '%';
     
-    const weeklyIncome = sociosState.count * sociosState.weeklyFee;
+    // Contar socios premium y standard
+    const premiumCount = sociosState.members.filter(m => m.membershipType === 'premium').length;
+    const standardCount = sociosState.members.filter(m => m.membershipType === 'standard').length;
+    
+    document.getElementById('socios-premium').textContent = premiumCount;
+    document.getElementById('socios-standard').textContent = standardCount;
+    
+    // Calcular ingresos semanales
+    const weeklyIncome = (premiumCount * sociosState.weeklyFee * 2) + (standardCount * sociosState.weeklyFee);
+    let totalIncome = weeklyIncome;
+    
     if (window.improvementsModule) {
         const barLevel = window.improvementsModule.improvementsState.facilities.bar.level;
         if (barLevel > 0) {
             const barIncome = window.improvementsModule.improvementsState.facilities.bar.benefits[barLevel - 1]?.incomeBonus || 0;
-            document.getElementById('socios-income').textContent = `$${weeklyIncome + barIncome}`;
-        } else {
-            document.getElementById('socios-income').textContent = `$${weeklyIncome}`;
+            totalIncome += barIncome;
         }
     }
+    
+    document.getElementById('socios-income').textContent = `$${totalIncome}`;
 }
 
 // Exportar funciones
@@ -246,7 +269,8 @@ window.sociosModule = {
     updateSociosSatisfaction,
     processSociosIncome,
     showSociosPanel,
-    updateSociosDisplay
+    updateSociosDisplay,
+    generateSocioName
 };
 
 console.log("Módulo de Socios cargado");

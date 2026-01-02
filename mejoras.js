@@ -8,14 +8,15 @@ let improvementsState = {
             maxLevel: 5,
             condition: 60,
             capacity: 20,
+            courtsCount: 1,
             costPerLevel: [0, 2000, 4500, 9000, 18000, 35000],
             benefits: [
-                { satisfaction: 0, reputation: 0, capacity: 20, attractionBonus: 0 },
-                { satisfaction: 5, reputation: 2, capacity: 30, attractionBonus: 0.03 },
-                { satisfaction: 10, reputation: 5, capacity: 42, attractionBonus: 0.06 },
-                { satisfaction: 15, reputation: 8, capacity: 55, attractionBonus: 0.09 },
-                { satisfaction: 20, reputation: 12, capacity: 68, attractionBonus: 0.12 },
-                { satisfaction: 25, reputation: 15, capacity: 80, attractionBonus: 0.15 }
+                { satisfaction: 0, reputation: 0, capacity: 20, courtsCount: 1, attractionBonus: 0 },
+                { satisfaction: 5, reputation: 2, capacity: 30, courtsCount: 2, attractionBonus: 0.03 },
+                { satisfaction: 10, reputation: 5, capacity: 42, courtsCount: 3, attractionBonus: 0.06 },
+                { satisfaction: 15, reputation: 8, capacity: 55, courtsCount: 4, attractionBonus: 0.09 },
+                { satisfaction: 20, reputation: 12, capacity: 68, courtsCount: 5, attractionBonus: 0.12 },
+                { satisfaction: 25, reputation: 15, capacity: 80, courtsCount: 6, attractionBonus: 0.15 }
             ]
         },
         lighting: {
@@ -219,7 +220,12 @@ function performImprovement(facilityName) {
         reputationModule.updateReputation(benefits.reputation || 0, `Mejora de ${getFacilityDisplayName(facilityName)}`);
     }
 
-    showNotification(`✅ ${getFacilityDisplayName(facilityName)} mejorado a Nivel ${facility.level}`, 'success');
+    // Mensaje específico para canchas
+    const message = facilityName === 'courts' && benefits.courtsCount > 1 ?
+        `✅ ${getFacilityDisplayName(facilityName)}: Ahora tienes ${benefits.courtsCount} canchas` :
+        `✅ ${getFacilityDisplayName(facilityName)} mejorado a Nivel ${facility.level}`;
+    
+    showNotification(message, 'success');
     updateStats();
     updateImprovementsDisplay();
 
@@ -233,6 +239,10 @@ function applyImprovementBenefits(facilityName, benefits) {
 
     if (benefits.capacity !== undefined) {
         facility.capacity = benefits.capacity;
+    }
+    
+    if (benefits.courtsCount !== undefined) {
+        facility.courtsCount = benefits.courtsCount;
     }
 
     if (benefits.nightCapacity !== undefined) {
@@ -465,7 +475,10 @@ function updateImprovementsDisplay() {
 function getFacilitySpecificStats(facilityName, facility) {
     switch (facilityName) {
         case 'courts':
-            return `<div class="stat-item"><span>Capacidad:</span> ${facility.capacity} alumnos</div>`;
+            return `
+                <div class="stat-item"><span>N° de Canchas:</span> ${facility.courtsCount || 1}</div>
+                <div class="stat-item"><span>Capacidad Total:</span> ${facility.capacity} alumnos</div>
+            `;
         case 'lighting':
             return `<div class="stat-item"><span>Capacidad nocturna:</span> ${facility.nightCapacity} alumnos</div>`;
         case 'equipment':

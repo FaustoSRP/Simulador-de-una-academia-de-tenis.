@@ -145,6 +145,11 @@ document.addEventListener('DOMContentLoaded', function () {
     if (window.adultsModule) {
         adultsModule.initializeAdultsLevels();
     }
+    
+    // Inicializar socios
+    if (window.sociosModule) {
+        sociosModule.initializeSocios();
+    }
 
     // Inicializar reputación
     if (window.reputationModule) {
@@ -214,6 +219,15 @@ document.addEventListener('DOMContentLoaded', function () {
             improvementsModule.showImprovementsPanel();
         } else {
             showNotification('Módulo de Mejoras no disponible', 'error');
+        }
+    });
+
+    // Botón de Socios
+    document.getElementById('btn-socios').addEventListener('click', function () {
+        if (window.sociosModule) {
+            sociosModule.showSociosPanel();
+        } else {
+            showNotification('Módulo de Socios no disponible', 'error');
         }
     });
 

@@ -63,6 +63,17 @@ const tournamentTypes = [
 // Tipos de torneos de adultos
 const adultTournamentTypes = [
     {
+        id: 'beginners_cup',
+        name: 'Copa de Principiantes',
+        minLevel: 25,
+        difficulty: 0.5,
+        entryFee: 50,
+        rewardMoney: 300,
+        rewardReputation: 3,
+        minParticipants: 2,
+        category: 'adults'
+    },
+    {
         id: 'amateur_league',
         name: 'Liga Amateur Adultos',
         minLevel: 30,
@@ -138,10 +149,19 @@ function generateAvailableTournaments() {
     }
 
     // === TORNEOS DE ADULTOS ===
+    // 80% probabilidad de copa de principiantes
+    if (Math.random() < 0.8 && gameState.adults >= 1) {
+        competitionsState.availableTournaments.push({
+            ...adultTournamentTypes[0],
+            date: generateTournamentDate(),
+            id: `beginners_${Date.now()}`
+        });
+    }
+    
     // 70% probabilidad de liga amateur
     if (Math.random() < 0.7 && gameState.adults >= 2) {
         competitionsState.availableTournaments.push({
-            ...adultTournamentTypes[0],
+            ...adultTournamentTypes[1],
             date: generateTournamentDate(),
             id: `amateur_${Date.now()}`
         });
@@ -150,7 +170,7 @@ function generateAvailableTournaments() {
     // 40% probabilidad de torneo senior
     if (Math.random() < 0.4 && gameState.reputation >= 30) {
         competitionsState.availableTournaments.push({
-            ...adultTournamentTypes[1],
+            ...adultTournamentTypes[2],
             date: generateTournamentDate(),
             id: `senior_${Date.now()}`
         });
@@ -160,9 +180,9 @@ function generateAvailableTournaments() {
     const hasProfessionalAdults = window.adultsModule && adultsModule.getProfessionalAdults().length > 0;
     if (Math.random() < 0.2 && hasProfessionalAdults && gameState.reputation >= 50) {
         competitionsState.availableTournaments.push({
-            ...adultTournamentTypes[2],
+            ...adultTournamentTypes[3],
             date: generateTournamentDate(),
-            id: `pro_${Date.now()}`
+            id: `professional_${Date.now()}`
         });
     }
 }
@@ -370,7 +390,12 @@ function showCompetitionsPanel() {
     const adultTournaments = competitionsState.availableTournaments.filter(t => t.category === 'adults');
 
     panel.innerHTML = `
-        <div style="background: linear-gradient(135deg, #f39c12, #e67e22); color: white; padding: 20px;">
+        <div style="background: linear-gradient(135deg, #f39c12, #e67e22); color: white; padding: 20px; position: relative;">
+            <button onclick="this.parentElement.parentElement.remove()" 
+                    style="position: absolute; top: 15px; right: 15px; background: rgba(255,255,255,0.2); 
+                           border: none; color: white; font-size: 24px; width: 40px; height: 40px; 
+                           border-radius: 50%; cursor: pointer; display: flex; align-items: center; 
+                           justify-content: center;">×</button>
             <h2 style="margin: 0; display: flex; align-items: center; gap: 10px;">
                 🏆 Competiciones
                 <span style="font-size: 14px; opacity: 0.8;">
